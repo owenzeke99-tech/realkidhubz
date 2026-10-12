@@ -1,0 +1,271 @@
+local CoreGui = game:GetService("CoreGui")
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local Player = Players.LocalPlayer
+
+-- Link Script chính và Link Get Key
+local SCRIPT_URL = "https://raw.githubusercontent.com/realkidhub/realkid/refs/heads/main/main.lua"
+local GET_KEY_URL = "https://link4m.net/a6xu08"
+
+-- File lưu trữ Key trên Executor
+local SAVE_FILE = "RealKidHub_SavedKey.txt"
+local KEY_DURATION = 86400 -- 24 giờ (tính bằng giây)
+
+-- Danh sách Key chuẩn
+local ValidKeys = {
+    "RealKidHubKeyKsjwowon - KalwojwbekekdnHalwoeuhejeke",
+    "RealKidHubKeyKsjwowon-KalwojwbekekdnHalwoeuhejeke",
+    "RealKidHubKeyKsjwowon",
+    "KalwojwbekekdnHalwoeuhejeke"
+}
+
+-- Hàm làm sạch chuỗi (Lược bỏ khoảng trắng thừa ở đầu/cuối)
+local function CleanString(str)
+    return (str:gsub("^%s*(.-)%s*$", "%1"))
+end
+
+-- Hàm kiểm tra Key
+local function IsValidKey(key)
+    local cleaned = CleanString(key)
+    for _, k in ipairs(ValidKeys) do
+        if cleaned == k then
+            return true
+        end
+    end
+    return false
+end
+
+-- Hàm Lưu Key vào File (Lưu định dạng Chuỗi đơn giản: KEY|TIMESTAMP)
+local function SaveKeyData(key)
+    if writefile then
+        pcall(function()
+            local content = CleanString(key) .. "|" .. tostring(os.time())
+            writefile(SAVE_FILE, content)
+        end)
+    end
+end
+
+-- Hàm Kiểm Tra Key Đã Lưu (Bỏ qua menu nếu còn hạn 24 giờ)
+local function CheckSavedKey()
+    if readfile and isfile and isfile(SAVE_FILE) then
+        local success, content = pcall(function()
+            return readfile(SAVE_FILE)
+        end)
+        
+        if success and content then
+            local savedKey, savedTime = content:match("^([^|]+)|(%d+)$")
+            if savedKey and savedTime then
+                local timePassed = os.time() - tonumber(savedTime)
+                if timePassed < KEY_DURATION and IsValidKey(savedKey) then
+                    return true
+                end
+            end
+        end
+    end
+    return false
+end
+
+-- TỰ ĐỘNG BỎ QUA MENU NẾU KEY ĐÃ ĐƯỢC LƯU VÀ CÒN HẠN 24H
+if CheckSavedKey() then
+    loadstring(game:HttpGet(SCRIPT_URL))()
+    return
+end
+
+--------------------------------------------------------------------------------
+-- GIAO DIỆN KEY SYSTEM
+--------------------------------------------------------------------------------
+
+pcall(function()
+    if CoreGui:FindFirstChild("RealKidHubKeySystem") then
+        CoreGui.RealKidHubKeySystem:Destroy()
+    end
+end)
+
+-- Color Palette
+local ICE_BLUE = Color3.fromRGB(120, 220, 255)
+local DARK_GLASS = Color3.fromRGB(15, 20, 28)
+local ERROR_RED = Color3.fromRGB(255, 75, 75)
+
+-- Main ScreenGui
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "RealKidHubKeySystem"
+ScreenGui.Parent = CoreGui
+ScreenGui.ResetOnSpawn = false
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+-- Main Frame
+local BasePosition = UDim2.new(0.5, -190, 0.5, -112)
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Size = UDim2.new(0, 380, 0, 225)
+MainFrame.Position = BasePosition
+MainFrame.BackgroundColor3 = DARK_GLASS
+MainFrame.BackgroundTransparency = 0.2
+MainFrame.BorderSizePixel = 0
+MainFrame.Parent = ScreenGui
+
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 12)
+MainCorner.Parent = MainFrame
+
+-- Border
+local MainStroke = Instance.new("UIStroke")
+MainStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+MainStroke.Color = ICE_BLUE
+MainStroke.Thickness = 1.5
+MainStroke.Transparency = 0.2
+MainStroke.Parent = MainFrame
+
+-- Title
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, 0, 0, 30)
+Title.Position = UDim2.new(0, 0, 0, 10)
+Title.BackgroundTransparency = 1
+Title.Text = "RealKid Hub"
+Title.TextColor3 = ICE_BLUE
+Title.TextSize = 22
+Title.Font = Enum.Font.FredokaOne
+Title.Parent = MainFrame
+
+-- Sub-title
+local SubTitle = Instance.new("TextLabel")
+SubTitle.Size = UDim2.new(1, 0, 0, 15)
+SubTitle.Position = UDim2.new(0, 0, 0, 40)
+SubTitle.BackgroundTransparency = 1
+SubTitle.Text = "Please Enter Your Key Below"
+SubTitle.TextColor3 = Color3.fromRGB(160, 190, 210)
+SubTitle.TextSize = 11
+SubTitle.Font = Enum.Font.GothamMedium
+SubTitle.Parent = MainFrame
+
+-- Key Box Container
+local KeyBoxFrame = Instance.new("Frame")
+KeyBoxFrame.Size = UDim2.new(0, 320, 0, 42)
+KeyBoxFrame.Position = UDim2.new(0.5, -160, 0, 68)
+KeyBoxFrame.BackgroundColor3 = Color3.fromRGB(10, 15, 22)
+KeyBoxFrame.BackgroundTransparency = 0.4
+KeyBoxFrame.BorderSizePixel = 0
+KeyBoxFrame.ClipsDescendants = true
+KeyBoxFrame.Parent = MainFrame
+
+local KeyBoxCorner = Instance.new("UICorner")
+KeyBoxCorner.CornerRadius = UDim.new(0, 8)
+KeyBoxCorner.Parent = KeyBoxFrame
+
+local KeyBoxStroke = Instance.new("UIStroke")
+KeyBoxStroke.Color = Color3.fromRGB(60, 80, 110)
+KeyBoxStroke.Thickness = 1
+KeyBoxStroke.Parent = KeyBoxFrame
+
+-- TextBox
+local KeyBox = Instance.new("TextBox")
+KeyBox.Size = UDim2.new(1, -24, 1, 0)
+KeyBox.Position = UDim2.new(0, 12, 0, 0)
+KeyBox.BackgroundTransparency = 1
+KeyBox.TextColor3 = Color3.fromRGB(240, 250, 255)
+KeyBox.PlaceholderText = "Enter Key Here..."
+KeyBox.PlaceholderColor3 = Color3.fromRGB(120, 140, 160)
+KeyBox.Text = ""
+KeyBox.TextSize = 13
+KeyBox.Font = Enum.Font.GothamMedium
+KeyBox.ClearTextOnFocus = false
+KeyBox.TextTruncate = Enum.TextTruncate.AtEnd
+KeyBox.Parent = KeyBoxFrame
+
+-- Error / Status Label
+local ErrorLabel = Instance.new("TextLabel")
+ErrorLabel.Size = UDim2.new(1, 0, 0, 20)
+ErrorLabel.Position = UDim2.new(0, 0, 0, 120)
+ErrorLabel.BackgroundTransparency = 1
+ErrorLabel.TextColor3 = ERROR_RED
+ErrorLabel.TextSize = 12
+ErrorLabel.Font = Enum.Font.Gotham
+ErrorLabel.Text = ""
+ErrorLabel.Parent = MainFrame
+
+-- Buttons
+local function CreateButton(text, pos, isPrimary)
+    local Btn = Instance.new("TextButton")
+    Btn.Size = UDim2.new(0, 150, 0, 38)
+    Btn.Position = pos
+    Btn.BackgroundColor3 = isPrimary and ICE_BLUE or Color3.fromRGB(25, 35, 48)
+    Btn.BackgroundTransparency = isPrimary and 0.15 or 0.3
+    Btn.Text = text
+    Btn.TextColor3 = isPrimary and Color3.fromRGB(10, 15, 22) or ICE_BLUE
+    Btn.TextSize = 14
+    Btn.Font = Enum.Font.GothamBold
+    Btn.AutoButtonColor = true
+    Btn.Parent = MainFrame
+
+    local BtnCorner = Instance.new("UICorner")
+    BtnCorner.CornerRadius = UDim.new(0, 8)
+    BtnCorner.Parent = Btn
+
+    local BtnStroke = Instance.new("UIStroke")
+    BtnStroke.Color = ICE_BLUE
+    BtnStroke.Thickness = 1
+    BtnStroke.Transparency = isPrimary and 1 or 0.5
+    BtnStroke.Parent = Btn
+
+    return Btn
+end
+
+local SubmitBtn = CreateButton("Check Key", UDim2.new(0.5, -160, 0, 160), true)
+local GetKeyBtn = CreateButton("Get Key", UDim2.new(0.5, 10, 0, 160), false)
+
+-- Shake Effect
+local function SmoothShake()
+    local shakeOffsets = {10, -8, 6, -4, 2, 0}
+    
+    TweenService:Create(MainStroke, TweenInfo.new(0.1), {Color = ERROR_RED}):Play()
+    TweenService:Create(KeyBoxStroke, TweenInfo.new(0.1), {Color = ERROR_RED}):Play()
+
+    task.spawn(function()
+        for _, offset in ipairs(shakeOffsets) do
+            local targetPos = UDim2.new(0.5, -190 + offset, 0.5, -112)
+            local tween = TweenService:Create(MainFrame, TweenInfo.new(0.04, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {Position = targetPos})
+            tween:Play()
+            tween.Completed:Wait()
+        end
+        
+        MainFrame.Position = BasePosition
+        TweenService:Create(MainStroke, TweenInfo.new(0.25), {Color = ICE_BLUE}):Play()
+        TweenService:Create(KeyBoxStroke, TweenInfo.new(0.25), {Color = Color3.fromRGB(60, 80, 110)}):Play()
+    end)
+end
+
+-- Check Key Handling
+SubmitBtn.MouseButton1Click:Connect(function()
+    local enteredKey = KeyBox.Text
+    
+    if IsValidKey(enteredKey) then
+        ErrorLabel.TextColor3 = ICE_BLUE
+        ErrorLabel.Text = "Correct Key! Saving & Loading Script..."
+        
+        -- Thực hiện lưu key
+        SaveKeyData(enteredKey)
+        
+        task.wait(0.5)
+        ScreenGui:Destroy()
+        
+        loadstring(game:HttpGet(SCRIPT_URL))()
+    else
+        ErrorLabel.TextColor3 = ERROR_RED
+        ErrorLabel.Text = "Invalid Key! Please try again."
+        
+        KeyBox.Text = ""
+        SmoothShake()
+    end
+end)
+
+-- Get Key Handling
+GetKeyBtn.MouseButton1Click:Connect(function()
+    if setclipboard then
+        setclipboard(GET_KEY_URL)
+        ErrorLabel.TextColor3 = ICE_BLUE
+        ErrorLabel.Text = "Copied Key Link to Clipboard!"
+    else
+        ErrorLabel.TextColor3 = ERROR_RED
+        ErrorLabel.Text = "Your executor does not support clipboard functionality!"
+    end
+end)
